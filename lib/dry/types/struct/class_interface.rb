@@ -5,12 +5,14 @@ module Dry
         include Builder
 
         attr_accessor :constructor
-
         attr_accessor :equalizer
 
         attr_writer :constructor_type
 
         protected :constructor=, :equalizer=, :constructor_type=
+
+        attr_reader :_schema, :_constructor_type
+        private :_schema, :_constructor_type
 
         def inherited(klass)
           super
@@ -36,7 +38,7 @@ module Dry
 
           prev_schema = schema
 
-          @schema = prev_schema.merge(new_schema)
+          @_schema = prev_schema.merge(new_schema)
           @constructor = Types['coercible.hash'].public_send(constructor_type, schema)
 
           attr_reader(*new_schema.keys)
@@ -54,15 +56,15 @@ module Dry
 
         def constructor_type(type = nil)
           if type
-            @constructor_type = type
+            @_constructor_type = type
           else
-            @constructor_type || :strict
+            _constructor_type || :strict
           end
         end
 
         def schema
           super_schema = superclass.respond_to?(:schema) ? superclass.schema : {}
-          super_schema.merge(@schema || {})
+          super_schema.merge(_schema || {})
         end
 
         def new(attributes = default_attributes)
